@@ -6,8 +6,8 @@ weight: 1
 
 
 # Exploring µ-Parameterization in Large-Scale Neural Networks
-author: "Lucas Dax Lingle"
-produced by Jeonghyun Choi, Minhye Choo
+author: Lucas Dax Lingle<br/>
+produced by Jeonghyun Choi, Minhye Choo<br/>
 date: 2024-05-17 <br/>
 
 
