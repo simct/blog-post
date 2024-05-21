@@ -78,7 +78,7 @@ One of the significant advantages of µ-Parameterization is the concept of µ-Tr
 
 ### Setup & objective
 The objective of these experiments is to examine how various methods that can enhance performance affect the actual transfer of learning rates from smaller width models to larger models with µP and their impact on performance in reality. While the existing µP aimed at transferring initialization and learning rates, this experiment focused on the learning rate, an important hyperparameter in large transformer models. <br/>
-The experiments were implemented using Jax/Flax on TPU V3, and the optimal learning rate was determined by measuring the validation loss. Models with widths of $M$ = {128, 512, 2048} have parameters ranging from 4.7M to 1.2B, with the depth fixed at L = 24. The reason for focusing solely on width and not depth is that in the case of depthwise µP, only one linear layer is used per residual block, whereas transformers use at least two layers. So, in this experiment, width is the main change to control the # of parameters.<br/>
+The experiments were implemented using Jax/Flax on TPU V3, and the optimal learning rate was determined by measuring the validation loss. Models with widths of  {{< katex >}}M {{< katex >}} =  {{< katex >}}\{128, 512, 2048\} {{< katex >}} have parameters ranging from 4.7M to 1.2B, with the depth fixed at  {{< katex >}}L {{< katex >}} = 24. The reason for focusing solely on width and not depth is that in the case of depthwise µP, only one linear layer is used per residual block, whereas transformers use at least two layers. So, in this experiment, width is the main change to control the # of parameters.<br/>
 
 
 ### baseline & Summary
@@ -111,15 +111,15 @@ Adding a bias vector to the linear layer does not guarantee an improvement in mo
 ### RMS Norm gain(vector & scalar) & Embedding normalization
 ![RMSNorm](https://github.com/simct/test/assets/127532891/34223422-3755-487e-9221-c2beaa3cfc15)<br/>
 <a href="https://arxiv.org/abs/1910.07467">RMSNorm</a> is a normalization method that uses the root mean square instead of the mean and standard deviation. 
-<br/>$$\bar{a_i}=\frac{a_i}{\mathrm{RMS(a)}}g_i, \text{where } \mathrm{RMS(a)}=\sqrt{\frac{1}{n}\sum_{i=1}^na_i^2}$$ <br/>
-To re-scale the standardized summed inputs, a trainable gain $g_i$ and bias $b_i$ were used. The gain can be implemented in two forms: a vector gain and a scalar multiplier. Similar to projection bias, the use of a trainable gain does not guarantee performance improvement.<br/>
+<br/> {{< katex display=true >}}\bar{a_i}=\frac{a_i}{\mathrm{RMS(a)}}g_i, \text{where } \mathrm{RMS(a)}=\sqrt{\frac{1}{n}\sum_{i=1}^na_i^2} {{< katex >}} <br/>
+To re-scale the standardized summed inputs, a trainable gain {{< /katex >}}g_i{{< /katex >}} and bias {{< /katex >}}b_i{{< /katex >}} were used. The gain can be implemented in two forms: a vector gain and a scalar multiplier. Similar to projection bias, the use of a trainable gain does not guarantee performance improvement.<br/>
 The results showed that transfer does not occur in any case, vector gain and scalar multiplier, and performance degradation was observed in the models with the largest width.<br/>
 On the other hand, using normalized embedding with RMSNorm without a trainable gain did not improve performance, but it was observed that the learning rate transfer was successful.
 
 
 ### Query Initialization
 ![zeroquery](https://github.com/simct/test/assets/127532891/cda1bb9e-df4d-4d95-9a42-6841e87754b8)<br/>
-For query projection, µP initialization typically uses a Gaussian distribution with variance $\Theta(1/M)$, but zero-initialization has been proposed to facilitate transfer. Transfer occurs with zero-initialized query, and there was a slight improvement in performance compared to the baseline, traditional Gaussian initialization.
+For query projection, µP initialization typically uses a Gaussian distribution with variance {{< /katex >}}\Theta(1/M){{< /katex >}}, but zero-initialization has been proposed to facilitate transfer. Transfer occurs with zero-initialized query, and there was a slight improvement in performance compared to the baseline, traditional Gaussian initialization.
 
 ### Cosine schedule
 ![cosineschedule](https://github.com/simct/test/assets/127532891/66ec153d-b017-4791-8787-4dba0176ab83)<br/>
@@ -127,14 +127,14 @@ Adjusting the learning rate over iterations is an open problem with no definitiv
 
 ### Decoupled weight decay
 ![weightdecay](https://github.com/simct/test/assets/127532891/4d7d83cf-03a5-434f-8456-ee34a26e067e)<br/>
-When optimizing hyperparameters with Adam, the <a href="https://arxiv.org/abs/1711.05101">decoupled weight decay</a> method separates the weight decay from the optimization step, allowing independent exploration of the learning rate and weight decay factor. Experimental results using decoupled weight decay showed that optimal learning rate transfer was not achieved. A large $\lambda$ value was suggested as a potential cause for this issue. In this experiment, $\lambda = 0.1$ was used. The smaller difference in optimal learning rates between small and large models, compared to other transfer failures, suggested that reducing $\lambda$ may help resolve the transfer problem.
+When optimizing hyperparameters with Adam, the <a href="https://arxiv.org/abs/1711.05101">decoupled weight decay</a> method separates the weight decay from the optimization step, allowing independent exploration of the learning rate and weight decay factor. Experimental results using decoupled weight decay showed that optimal learning rate transfer was not achieved. A large {{< /katex >}}\lambda{{< /katex >}} value was suggested as a potential cause for this issue. In this experiment, {{< /katex >}}\lambda = 0.1{{< /katex >}} was used. The smaller difference in optimal learning rates between small and large models, compared to other transfer failures, suggested that reducing {{< /katex >}}\lambda{{< /katex >}} may help resolve the transfer problem.
 
 ### Multiplicative Nonlinearities
 ![nonlinear](https://github.com/simct/test/assets/127532891/b7ff437a-e3be-4bcf-9df4-74e51d2fac73)<br/>
 To enhance the performance of transformers, multiplicative nonlinearity activation functions such as <a href="https://arxiv.org/abs/2002.05202">SwiGLU</a> and Squared ReLU can be utilized. SwiGLU is an activation function created by combining the Swish activation function with the Gated Linear Unit (GLU) and is considered to get better performance compared to traditional activation methods. . The formulas for each are as follows: <br/><br/>
-$Swish(x) = x\sigma (\beta x)$ ($\sigma$ : sigmoid function, $\beta$ : trainable parameter )<br/>
-$GLU(x,W,V,b,c) = \sigma(xW+b)\otimes (xV+c)$ ($W,V$ : trainable tensor, $b,c$: trainable tensor bias, $\otimes$ : element-wise multiplication)<br/>
-$SwiGLU(x,W,V,b,c, \beta) = Swish_\beta(xW+b)\otimes(xV+c)$<br/><br/>
+{{< /katex >}}Swish(x) = x\sigma (\beta x){{< /katex >}} ({{< /katex >}}\sigma{{< /katex >}} : sigmoid function, {{< /katex >}}\beta{{< /katex >}} : trainable parameter )<br/>
+{{< /katex >}}GLU(x,W,V,b,c) = \sigma(xW+b)\otimes (xV+c){{< /katex >}} ({{< /katex >}}W,V{{< /katex >}} : trainable tensor, {{< /katex >}}b,c{{< /katex >}}: trainable tensor bias, {{< /katex >}}\otimes{{< /katex >}} : element-wise multiplication)<br/>
+{{< /katex >}}SwiGLU(x,W,V,b,c, \beta) = Swish_\beta(xW+b)\otimes(xV+c){{< /katex >}}<br/><br/>
 
 Similarly, Squared ReLU, which is obtained by squaring the ReLU activation function, is known to help improve performance. Experimental results showed that they allow µ-transfer of the learning rate across model sizes and unlike the RMSNorm gain, there was a performance improvement from the perspective of multiplicative interaction.
 
@@ -142,15 +142,15 @@ Similarly, Squared ReLU, which is obtained by squaring the ReLU activation funct
 ![SPpart](https://github.com/simct/test/assets/127532891/a2d6ed4a-b628-485d-8491-840cc1d3ebc9)<br/>
 <a href="https://arxiv.org/abs/2203.03466">Yang et al. (2021)</a> stateed that µP models perform better than SP models, and our various experiments with SP settings confirmed that some of the µP settings offer advantages in terms of transfer and model performance.<br/>
 - attention scale<br/>
-Usual attention scaling is $\tau^{-1} = 1/\sqrt{D}$, while µP proposes $\tau^{-1} = \Theta(1/D)$, and baseline experiment was implemented using a simple $(1/D$) scaling. In this experiment, attention scaling was $1/\sqrt{D}$ to check the SP setting. For the $M = 128$ model, the optimal learning rate was $2^{-8}$, but for larger models, the optimal learning rate was changed to $2^{-6}$. This means that transfer did not occur, and performance slightly deteriorated compared to the original baseline.
+Usual attention scaling is {{< /katex >}}\tau^{-1} = 1/\sqrt{D}{{< /katex >}}, while µP proposes {{< /katex >}}\tau^{-1} = \Theta(1/D){{< /katex >}}, and baseline experiment was implemented using a simple {{< /katex >}}(1/D{{< /katex >}}) scaling. In this experiment, attention scaling was {{< /katex >}}1/\sqrt{D}{{< /katex >}} to check the SP setting. For the {{< /katex >}}M = 128{{< /katex >}} model, the optimal learning rate was {{< /katex >}}2^{-8}{{< /katex >}}, but for larger models, the optimal learning rate was changed to {{< /katex >}}2^{-6}{{< /katex >}}. This means that transfer did not occur, and performance slightly deteriorated compared to the original baseline.
 - unembedding initialization<br/>
-The initialization of µP's unembedding matrix follows a Gaussian distribution with a variance of $\Theta(1/M^2)$, while standard parametrization (SP) uses $1/M$. Experiments using the original SP method with $1/M$ showed that transfer was maintained and there was a slight improvement in performance for larger models. <br/>
+The initialization of µP's unembedding matrix follows a Gaussian distribution with a variance of {{< /katex >}}\Theta(1/M^2){{< /katex >}}, while standard parametrization (SP) uses {{< /katex >}}1/M{{< /katex >}}. Experiments using the original SP method with {{< /katex >}}1/M{{< /katex >}} showed that transfer was maintained and there was a slight improvement in performance for larger models. <br/>
 <p align="center"><img src="https://github.com/simct/test/assets/127532891/597b6eef-f507-4d5c-884b-710602e45245"></p><br/>
-To compare the result of the SP and µP,  this experiment was implemented using SP and compared the result with baseline's. The differences between the baseline and SP included using trainable biases in linear layers, trainable gains in RMSNorm layers, attention scale $1/\sqrt{D}$, and unembedding initialization variance $1/M$. All other hyperparameters remained the same. The combined results for SP transformers showed that transfer does not occur, and the optimal loss is lower in performance compared to the baseline. 
+To compare the result of the SP and µP,  this experiment was implemented using SP and compared the result with baseline's. The differences between the baseline and SP included using trainable biases in linear layers, trainable gains in RMSNorm layers, attention scale {{< /katex >}}1/\sqrt{D}{{< /katex >}}, and unembedding initialization variance {{< /katex >}}1/M{{< /katex >}}. All other hyperparameters remained the same. The combined results for SP transformers showed that transfer does not occur, and the optimal loss is lower in performance compared to the baseline. 
 
 ### Lion Optimizer
 ![Lion](https://github.com/simct/test/assets/127532891/1998e992-833b-4d15-94b3-45594cd04931)<br/>
-<a href="https://github.com/lucidrains/lion-pytorch">The Lion optimizer</a> is known for being more than twice as memory-efficient as Adam while delivering similar performance in transformers. This optimizer restricts updates to $\{-1, 1\}$ for each coordinate, yielding a coordinate size of $\Theta(1)$ per step. Consequently, it seems suitable to use the existing $\Theta(1/M)$ transfer rule as it is. However, experimental results showed that the learning rate transfer was not successful, indicating the need for further research on the transfer rule.
+<a href="https://github.com/lucidrains/lion-pytorch">The Lion optimizer</a> is known for being more than twice as memory-efficient as Adam while delivering similar performance in transformers. This optimizer restricts updates to {{< /katex >}}\{-1, 1\}{{< /katex >}} for each coordinate, yielding a coordinate size of {{< /katex >}}\Theta(1){{< /katex >}} per step. Consequently, it seems suitable to use the existing {{< /katex >}}\Theta(1/M){{< /katex >}} transfer rule as it is. However, experimental results showed that the learning rate transfer was not successful, indicating the need for further research on the transfer rule.
 
 ### Multi-query attention
 ![multiquery](https://github.com/simct/test/assets/127532891/70a24d8d-0692-458b-8049-b866b81760b7)<br/>
@@ -162,7 +162,7 @@ By adjusting the batch size while keeping the number of training tokens constant
 
 ### Large-scale Transfer Experiement
 <p align="center"><img src="https://github.com/simct/test/assets/127532891/1a114701-44f0-4444-b73e-800c5db44e40"></p><br/>
-To verify if transfer is possible over a larger scale difference, experiments was implemented by reducing $L$ to 12 and setting the width to $\{128, 512, 2048, 8192\}$, resulting in models with 2M, 40M, 600M, and 10B parameters(5000x).  Zero query and Squared ReLU were used, which showed good performance and did not negatively impact transfer. The results confirmed that, despite a 5000x scale difference, the learning rate transfer well.
+To verify if transfer is possible over a larger scale difference, experiments was implemented by reducing {{< /katex >}}L{{< /katex >}} to 12 and setting the width to {{< /katex >}}\{128, 512, 2048, 8192\}{{< /katex >}}, resulting in models with 2M, 40M, 600M, and 10B parameters(5000x).  Zero query and Squared ReLU were used, which showed good performance and did not negatively impact transfer. The results confirmed that, despite a 5000x scale difference, the learning rate transfer well.
 
 ## Related Works
 To summarize the contributions of the paper and consider the future works, this section summarizes the contents of a relevant research paper and explains its works and limitations.
